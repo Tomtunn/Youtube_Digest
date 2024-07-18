@@ -4,6 +4,7 @@ from youtube_transcript_api import YouTubeTranscriptApi
 import streamlit as st
 from tqdm.auto import tqdm
 import torch
+import gradio as gr
 
 device = "cuda" if torch.cuda.is_available() else "cpu" 
 model = BartForConditionalGeneration.from_pretrained("facebook/bart-large-cnn").to(device)
@@ -80,45 +81,27 @@ def get_transcript(video_link):
     transcript = " ".join([line['text'] for line in eng_transcript])
     return transcript
 
+def get_video_summary(video_link, max_summary_length=512, device="cpu"):
+    """
+    video_link: youtube video link (str)
+    
+    return transcript of the video (str)
+    """
+    transcript = get_transcript(video_link)
+    summary = summarize_long_text(transcript, max_summary_length=max_summary_length, device=device)
+    return summary
 
 def main():
     print(device)
-    st.title('Video Summarizer')
-    link = st.text_input('Enter the youtube video link')
-    max_summary_length = st.slider('Select the maximum length of the summary', 100, 5000, 512, step=100)
+    demo = gr.Interface(
+    fn=lambda text, max_length: get_video_summary(text, max_length, device=device), 
+    inputs=["text", 
+            gr.Slider(100, 5000, value=512, label="Max Summary Length", step=100)],
+    outputs="text",
+    title="Video Summarization", 
+    description="Summarize youtube video")
 
-    if st.button('Generate Summary'):
-        if link:
-            try:
-                status_text = st.empty()
-                progress_bar = st.progress(25)
-                
-                status_text.text('Loading the transcript...')
-                progress_bar.progress(50)
-                transcript = get_transcript(link)
-                print('transcript:', 'pass')
-                
-            except Exception as e:
-                st.write('Error:', e)
-                st.write('Please enter a valid youtube video link')
-                
-            try:
-                status_text.text('Summarizing the transcript...')
-                progress_bar.progress(75)
-                summary = summarize_long_text(transcript, max_summary_length=max_summary_length, device=device)
-                print('summary:', 'pass')
-                
-                status_text.text('Finish summarized!!!')
-                progress_bar.progress(100)
-                st.markdown(summary)
-                
-            except Exception as e:
-                st.write('Error:', e)
-                st.write('Cannot summarize the video return transcript instead')
-                st.write(transcript)    
-                 
-        else:
-            st.write('Please enter a youtube video link') 
+    demo.launch()
 
 if __name__ == "__main__":
     main()
