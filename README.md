@@ -14,7 +14,8 @@ cd Youtube_Digest
 pip install -r requirements.txt
 ```
 
-## to run the demo
+## To run the demo
 ```sh
 garadio app.py
 ```
+or using google colab --> [Open in colab](https://colab.research.google.com/drive/1guPrXKgHA8x9dRI4anj9OaHktequA5ZX?usp=sharing)

@@ -87,7 +87,11 @@ def get_video_summary(video_link, max_summary_length=512, device="cpu"):
     
     return transcript of the video (str)
     """
-    transcript = get_transcript(video_link)
+    try:
+        transcript = get_transcript(video_link)
+    except Exception as e:
+        print(f"Error: {e}")
+        return "Error: No transcript found"
     summary = summarize_long_text(transcript, max_summary_length=max_summary_length, device=device)
     return summary
 
@@ -99,7 +103,7 @@ def main():
             gr.Slider(100, 5000, value=512, label="Max Summary Length", step=100)],
     outputs="text",
     title="Video Summarization", 
-    description="Summarize youtube video")
+    description="Paste youtube url below")
 
     demo.launch()
 
